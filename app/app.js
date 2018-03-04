@@ -5,6 +5,9 @@ var myUtil = require("../util/myUtil");
 var url_1 = require("url");
 var https_1 = require("https");
 var sign = require("../util/signature");
+var http_1 = require("http");
+// Cache
+var cache = {};
 /* User Data */
 var credential = {
     key: 'Frr2qLWTtMctBLin1t3NmtQa3',
@@ -12,7 +15,6 @@ var credential = {
     token: '1696416332-ujOmuatoR2tgxBKkP8dm9sb0EatkQM3pIBfn7Kg',
     tokenSecret: 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P'
 };
-var url = 'https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica';
 var Twitter = /** @class */ (function () {
     function Twitter(obj) {
         this.obj = obj;
@@ -51,22 +53,18 @@ var Twitter = /** @class */ (function () {
             }
         };
     }
-    Twitter.prototype.getFollowers = function (count) {
-        var lookup = "https://api.twitter.com/1.1/users/lookup.json";
-        var signature = sign.getSign(lookup, this.auth, 'POST');
-    };
     Twitter.prototype.request = function (url, method) {
         var _this = this;
         var req;
-        var signature = sign.getSign(url, this.auth, method);
+        var signature;
         var parsedUrl;
         if (typeof url === 'string') {
-            parsedUrl = new url_1.URL(url);
-            console.log(parsedUrl);
+            signature = sign.getSign(url, this.auth, method);
+            parsedUrl = url_1.parse(url);
             req = https_1.request({
                 method: method,
                 host: parsedUrl.host,
-                path: parsedUrl.pathname
+                path: parsedUrl.path
             });
         }
         else {
@@ -74,14 +72,15 @@ var Twitter = /** @class */ (function () {
             if (url['params']) {
                 search += '?' + querystring_1.stringify(url.params);
             }
+            console.log(url);
             req = https_1.request({
+                method: method,
                 host: url.host,
-                path: url.path,
-                search: search
+                path: url.path + search
             });
+            signature = sign.getSign("https://" + url.host + url.path + search, this.auth, method);
         }
         return new Promise(function (resolve, reject) {
-            console.log(req.getHeaders());
             req.on('response', function (res) {
                 res.setEncoding('utf8');
                 var data;
@@ -108,14 +107,13 @@ var Twitter = /** @class */ (function () {
     return Twitter;
 }());
 var t = new Twitter(credential);
-t.get(url).then(function (data) {
-    /*if (data) {
-        createServer((req, res) => {
+t.getFollowers({ count: 1000 }).then(function (data) {
+    if (data) {
+        http_1.createServer(function (req, res) {
             res.end(data);
         }).listen({ host: '127.0.0.1', port: 8080 }, function () {
             console.log(this.address());
         });
-    }*/
-    console.log(data);
+    }
 }).catch(function (err) { return console.log(err); });
 //# sourceMappingURL=app.js.map
