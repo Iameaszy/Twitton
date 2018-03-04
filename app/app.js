@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var querystring_1 = require("querystring");
 var myUtil = require("../util/myUtil");
-var sign = require("../util/signature");
+var url_1 = require("url");
 var https_1 = require("https");
+var sign = require("../util/signature");
 /* User Data */
 var credential = {
     key: 'Frr2qLWTtMctBLin1t3NmtQa3',
@@ -49,27 +51,71 @@ var Twitter = /** @class */ (function () {
             }
         };
     }
-    Twitter.prototype.get = function (url, options) {
+    Twitter.prototype.getFollowers = function (count) {
+        var lookup = "https://api.twitter.com/1.1/users/lookup.json";
+        var signature = sign.getSign(lookup, this.auth, 'POST');
+    };
+    Twitter.prototype.request = function (url, method) {
         var _this = this;
-        var signature = sign.getSign(url, this.auth, 'GET');
+        var req;
+        var signature = sign.getSign(url, this.auth, method);
+        var parsedUrl;
+        if (typeof url === 'string') {
+            parsedUrl = new url_1.URL(url);
+            console.log(parsedUrl);
+            req = https_1.request({
+                method: method,
+                host: parsedUrl.host,
+                path: parsedUrl.pathname
+            });
+        }
+        else {
+            var search = "";
+            if (url['params']) {
+                search += '?' + querystring_1.stringify(url.params);
+            }
+            req = https_1.request({
+                host: url.host,
+                path: url.path,
+                search: search
+            });
+        }
         return new Promise(function (resolve, reject) {
-            var req = https_1.request(url, function (res) {
+            console.log(req.getHeaders());
+            req.on('response', function (res) {
                 res.setEncoding('utf8');
+                var data;
                 res.on('data', function (chunk) {
-                    resolve(chunk);
+                    data += chunk;
+                });
+                res.on('end', function () {
+                    resolve(data);
                 });
             });
             req.on('error', function (err) {
                 reject(err);
             });
-            req.setHeader('Authorization', "OAuth\n            oauth_consumer_key=" + _this.auth.oauth_consumer_key + ",\n            oauth_token=" + _this.auth.oauth_token + ",oauth_signature_method=\"HMAC-SHA1\",\n            oauth_timestamp=" + _this.auth.oauth_timestamp + ",\n            oauth_nonce=" + _this.auth.oauth_nonce + ",\n            oauth_version=\"1.0\",\n            oauth_signature=" + signature);
+            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + credential.key + '",oauth_token="' + credential.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + _this.auth.oauth_timestamp + '",oauth_nonce="' + _this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
+            req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.end();
         });
+    };
+    Twitter.prototype.oauth = function () {
+    };
+    Twitter.prototype.get = function (url) {
+        return this.request(url, 'GET');
     };
     return Twitter;
 }());
 var t = new Twitter(credential);
 t.get(url).then(function (data) {
+    /*if (data) {
+        createServer((req, res) => {
+            res.end(data);
+        }).listen({ host: '127.0.0.1', port: 8080 }, function () {
+            console.log(this.address());
+        });
+    }*/
     console.log(data);
 }).catch(function (err) { return console.log(err); });
 //# sourceMappingURL=app.js.map

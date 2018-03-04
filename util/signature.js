@@ -26,50 +26,59 @@ var __read = (this && this.__read) || function (o, n) {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var querystring_1 = require("querystring");
+var crypto_1 = require("crypto");
 var url_1 = require("url");
+var querystring_1 = require("querystring");
 var myUtil = require("../util/myUtil");
-/*
-let auth: { [index: string]: any } = {
-    'oauth_consumer_key': 'Frr2qLWTtMctBLin1t3NmtQa3',
-    'oauth_token': '1696416332-ujOmuatoR2tgxBKkP8dm9sb0EatkQM3pIBfn7Kg',
-    'oauth_timestamp': Math.floor(Date.now() / 1000),
-    'oauth_nonce': myUtil.getRandom(6),
-    'oauth_signature_method': 'HMAC-SHA1'
-};
-const oauth_secret = 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P';
-const conSecret = 'xBVmlsMd1SwYYTxHHbRvQKtNtac2TpOL1MlnQfcOb9zIkO9i1C';
-const signingKey = conSecret.concat('&', oauth_secret);
-const href = 'https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica';
-const url = new URL(href);
-*/
-var param = new url_1.URLSearchParams(url.searchParams);
-try {
-    for (var param_1 = __values(param), param_1_1 = param_1.next(); !param_1_1.done; param_1_1 = param_1.next()) {
-        var _a = __read(param_1_1.value, 2), name = _a[0], value = _a[1];
-        auth[encodeURIComponent(name)] = encodeURIComponent(value);
-    }
-}
-catch (e_1_1) { e_1 = { error: e_1_1 }; }
-finally {
-    try {
-        if (param_1_1 && !param_1_1.done && (_b = param_1.return)) _b.call(param_1);
-    }
-    finally { if (e_1) throw e_1.error; }
-}
-auth = myUtil.sortObject(auth);
-var method = 'GET';
-var baseUrl = url.origin + url.pathname;
-var joinedParams = querystring_1.stringify(auth);
-var finalStr = "";
-finalStr += encodeURIComponent(method);
-finalStr += '&';
-finalStr += encodeURIComponent(baseUrl);
-finalStr += "&";
-finalStr += encodeURIComponent(joinedParams.toString());
 function getSign(url, auth, method) {
-    return '';
+    var href = null;
+    if (typeof url === 'string') {
+        href = new url_1.URL(url);
+    }
+    else {
+        var link = 'https://';
+        link += url.host + url.path;
+        if (url['params']) {
+            link += '?' + querystring_1.stringify(url.params);
+        }
+        href = new url_1.URL(link);
+    }
+    var param = new url_1.URLSearchParams(href.searchParams);
+    var signKey = auth.oauth_consumer_secret.concat('&', auth.oauth_token_secret);
+    var myObj = {};
+    myObj.oauth_consumer_key = auth.oauth_consumer_key;
+    myObj.oauth_nonce = auth.oauth_nonce;
+    myObj.oauth_signature_method = auth.oauth_signature_method;
+    myObj.oauth_timestamp = auth.oauth_timestamp;
+    myObj.oauth_token = auth.oauth_token;
+    myObj.oauth_version = auth.oauth_version;
+    try {
+        for (var param_1 = __values(param), param_1_1 = param_1.next(); !param_1_1.done; param_1_1 = param_1.next()) {
+            var _a = __read(param_1_1.value, 2), name = _a[0], value = _a[1];
+            myObj[encodeURIComponent(name)] = encodeURIComponent(value);
+        }
+    }
+    catch (e_1_1) { e_1 = { error: e_1_1 }; }
+    finally {
+        try {
+            if (param_1_1 && !param_1_1.done && (_b = param_1.return)) _b.call(param_1);
+        }
+        finally { if (e_1) throw e_1.error; }
+    }
+    myObj = myUtil.sortObject(myObj);
+    var baseUrl = href.origin + href.pathname;
+    var encodedAuth = querystring_1.stringify(myObj);
+    var finalStr = "";
+    finalStr += encodeURIComponent(method);
+    finalStr += '&';
+    finalStr += encodeURIComponent(baseUrl);
+    finalStr += "&";
+    finalStr += encodeURIComponent(encodedAuth);
+    var hmac = crypto_1.createHmac('SHA1', signKey);
+    hmac.update(finalStr);
+    var key = hmac.digest().toString('base64');
+    return encodeURIComponent(key);
+    var e_1, _b;
 }
 exports.getSign = getSign;
-var e_1, _b;
 //# sourceMappingURL=signature.js.map

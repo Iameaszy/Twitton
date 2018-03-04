@@ -1,8 +1,10 @@
+import { stringify } from 'querystring';
 import myUtil = require('../util/myUtil');
-import { URL } from 'url';
-import sign = require('../util/signature');
+import { URL, parse } from 'url';
 import { get, request } from 'https';
 
+import sign = require('../util/signature');
+import { createServer, ClientRequest } from 'http';
 
 /* User Data */
 const credential = {
@@ -14,6 +16,7 @@ const credential = {
 
 const url = 'https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica';
 
+type METHOD = 'POST' | 'PUT' | 'GET' | 'DELETE';
 
 class Twitter {
     public auth: sign.AUTHCREDENTIAL;
@@ -61,37 +64,73 @@ class Twitter {
             }
         };
     }
+    getFollowers(count: number) {
+        const lookup = `https://api.twitter.com/1.1/users/lookup.json`;
+        const signature = sign.getSign(lookup, this.auth, 'POST');
+    }
 
-    get(url: string, options?: { [index: string]: any }) {
-        const signature = sign.getSign(url, this.auth, 'GET');
+    request(url: string | { host: string, path: string, params?: { [index: string]: any } }, method: METHOD) {
+        let req: ClientRequest;
+        const signature = sign.getSign(url, this.auth, method);
+        let parsedUrl: string | URL;
+        if (typeof url === 'string') {
+            parsedUrl = new URL(url);
+            console.log(parsedUrl);
+            req = request({
+                method: method,
+                host: parsedUrl.host,
+                path: parsedUrl.pathname
+            });
+        } else {
+            let search = "";
+            if (url['params']) {
+                search += '?' + stringify(url.params);
+            }
+            req = request({
+                host: url.host,
+                path: url.path,
+                search: search
+            });
+        }
         return new Promise((resolve, reject) => {
-            const req = request(url, (res) => {
+            console.log(req.getHeaders());
+            req.on('response', (res) => {
                 res.setEncoding('utf8');
-                res.on('data', (chunk) => {
-                    resolve(chunk);
+                let data: any;
+                res.on('data', (chunk: string) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    resolve(data);
                 });
             });
-
             req.on('error', (err) => {
                 reject(err);
             });
 
-            req.setHeader('Authorization', `OAuth
-            oauth_consumer_key=${this.auth.oauth_consumer_key},
-            oauth_token=${this.auth.oauth_token},oauth_signature_method="HMAC-SHA1",
-            oauth_timestamp=${this.auth.oauth_timestamp},
-            oauth_nonce=${this.auth.oauth_nonce},
-            oauth_version="1.0",
-            oauth_signature=${signature}`);
+            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + credential.key + '",oauth_token="' + credential.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
+            req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.end();
         });
     }
+    oauth() {
+
+    }
+    get(url: string) {
+        return this.request(url, 'GET');
+    }
+
 }
-
-
 
 const t = new Twitter(credential);
 t.get(url).then(function (data) {
+    /*if (data) {
+        createServer((req, res) => {
+            res.end(data);
+        }).listen({ host: '127.0.0.1', port: 8080 }, function () {
+            console.log(this.address());
+        });
+    }*/
     console.log(data);
 }).catch((err) => console.log(err));
 
