@@ -80,7 +80,7 @@ var T = new Twitter(credential);
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, T.client('https://api.twitter.com/1.1/followers/ids.json', 'GET')];
+                return [4 /*yield*/, T.fetch('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica', 'GET')];
             case 1:
                 ids = _a.sent();
                 return [3 /*break*/, 3];

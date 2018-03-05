@@ -8,9 +8,7 @@ type METHOD = 'POST' | 'PUT' | 'GET' | 'DELETE';
 
 
 export abstract class Fetch {
-    costructor() {
-    }
-    client(url: string | { host: string, path: string, params?: { [index: string]: any } }, method: METHOD) {
+    fetch(url: string | { host: string, path: string, params?: { [index: string]: any } }, method: METHOD) {
         let req: ClientRequest;
         let signature: any;
         let parsedUrl: any;
@@ -43,13 +41,12 @@ export abstract class Fetch {
                     data += chunk;
                 });
                 res.on('end', () => {
-                    resolve(data);
+                    resolve({ 'data': data });
                 });
             });
             req.on('error', (err) => {
-                reject(err);
+                reject({ err: err });
             });
-
             req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + this.auth.key + '",oauth_token="' + this.auth.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
             req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.end();

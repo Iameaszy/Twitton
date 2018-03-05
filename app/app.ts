@@ -37,14 +37,13 @@ class Twitter extends Fetch {
 }
 
 const T = new Twitter(credential);
-
 (async () => {
     let ids: any;
     try {
-        ids = await T.client('https://api.twitter.com/1.1/followers/ids.json', 'GET');
+        ids = await T.fetch('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica', 'GET');
     } catch (e) {
         if (e) console.log('err:', e);
     }
 
     console.log(ids);
-})();
+})()    ;

@@ -7,9 +7,7 @@ var querystring_1 = require("querystring");
 var Fetch = /** @class */ (function () {
     function Fetch() {
     }
-    Fetch.prototype.costructor = function () {
-    };
-    Fetch.prototype.client = function (url, method) {
+    Fetch.prototype.fetch = function (url, method) {
         var _this = this;
         var req;
         var signature;
@@ -44,11 +42,11 @@ var Fetch = /** @class */ (function () {
                     data += chunk;
                 });
                 res.on('end', function () {
-                    resolve(data);
+                    resolve({ 'data': data });
                 });
             });
             req.on('error', function (err) {
-                reject(err);
+                reject({ err: err });
             });
             req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + _this.auth.key + '",oauth_token="' + _this.auth.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + _this.auth.oauth_timestamp + '",oauth_nonce="' + _this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
             req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
