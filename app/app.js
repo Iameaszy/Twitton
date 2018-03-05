@@ -1,13 +1,53 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var querystring_1 = require("querystring");
-var myUtil = require("../util/myUtil");
-var url_1 = require("url");
-var https_1 = require("https");
-var sign = require("../util/signature");
-var http_1 = require("http");
-// Cache
-var cache = {};
+var fetch_1 = require("./fetch");
+var myUtil_1 = require("../util/myUtil");
 /* User Data */
 var credential = {
     key: 'Frr2qLWTtMctBLin1t3NmtQa3',
@@ -15,106 +55,44 @@ var credential = {
     token: '1696416332-ujOmuatoR2tgxBKkP8dm9sb0EatkQM3pIBfn7Kg',
     tokenSecret: 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P'
 };
-var Twitter = /** @class */ (function () {
+var Twitter = /** @class */ (function (_super) {
+    __extends(Twitter, _super);
     function Twitter(obj) {
-        this.obj = obj;
-        this.auth = {
-            oauth_nonce: myUtil.getRandom(6),
+        var _this = _super.call(this) || this;
+        _this.auth = {
+            oauth_nonce: myUtil_1.getRandom(6),
             oauth_version: "1.0",
             oauth_signature_method: "HMAC-SHA1",
             oauth_timestamp: "" + Math.floor(Date.now() / 1000),
             oauth_consumer_key: obj.key,
             oauth_consumer_secret: obj.keySecret,
             oauth_token: obj.token,
-            oauth_token_secret: obj.tokenSecret,
-            get key() {
-                return this.oauth_consumer_key;
-            },
-            set key(val) {
-                this.oauth_consumer_key = val;
-            },
-            get keySecret() {
-                return this.oauth_consumer_secret;
-            },
-            set keySecret(val) {
-                this.oauth_consumer_secret = val;
-            },
-            get token() {
-                return this.oauth_token;
-            },
-            set token(val) {
-                this.oauth_token = val;
-            },
-            get tokenSecret() {
-                return this.oauth_token_secret;
-            },
-            set tokenSecret(val) {
-                this.oauth_token_secret = val;
-            }
+            oauth_token_secret: obj.tokenSecret
         };
+        return _this;
     }
-    Twitter.prototype.oauth = function (url, method) {
-        var _this = this;
-        var req;
-        var signature;
-        var parsedUrl;
-        if (typeof url === 'string') {
-            signature = sign.getSign(url, this.auth, method);
-            parsedUrl = url_1.parse(url);
-            req = https_1.request({
-                method: method,
-                host: parsedUrl.host,
-                path: parsedUrl.path
-            });
-        }
-        else {
-            var search = "";
-            if (url['params']) {
-                search += '?' + querystring_1.stringify(url.params);
-            }
-            console.log(url);
-            req = https_1.request({
-                method: method,
-                host: url.host,
-                path: url.path + search
-            });
-            signature = sign.getSign("https://" + url.host + url.path + search, this.auth, method);
-        }
-        return new Promise(function (resolve, reject) {
-            req.on('response', function (res) {
-                res.setEncoding('utf8');
-                var data;
-                res.on('data', function (chunk) {
-                    data += chunk;
-                });
-                res.on('end', function () {
-                    resolve(data);
-                });
-            });
-            req.on('error', function (err) {
-                reject(err);
-            });
-            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + credential.key + '",oauth_token="' + credential.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + _this.auth.oauth_timestamp + '",oauth_nonce="' + _this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
-            req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
-            req.end();
-        });
-    };
-    Twitter.prototype.getFollowers = function (url, obj) {
-        return this.oauth(url, 'GET');
-    };
-    Twitter.prototype.get = function (url) {
-        return this.oauth(url, 'GET');
-    };
     return Twitter;
-}());
-var t = new Twitter(credential);
-t.get('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica').then(function (data) {
-    if (data) {
-        http_1.createServer(function (req, res) {
-            res.end(data);
-        }).listen({ host: '127.0.0.1', port: 8080 }, function () {
-            console.log(this.address());
-        });
-    }
-}).catch(function (err) { return console.log(err); });
+}(fetch_1.Fetch));
+var T = new Twitter(credential);
+(function () { return __awaiter(_this, void 0, void 0, function () {
+    var ids, e_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, T.client('https://api.twitter.com/1.1/followers/ids.json', 'GET')];
+            case 1:
+                ids = _a.sent();
+                return [3 /*break*/, 3];
+            case 2:
+                e_1 = _a.sent();
+                if (e_1)
+                    console.log('err:', e_1);
+                return [3 /*break*/, 3];
+            case 3:
+                console.log(ids);
+                return [2 /*return*/];
+        }
+    });
+}); })();
 //# sourceMappingURL=app.js.map
