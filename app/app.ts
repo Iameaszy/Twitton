@@ -46,4 +46,4 @@ const T = new Twitter(credential);
     }
 
     console.log(ids);
-})()    ;
+})();
