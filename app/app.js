@@ -53,7 +53,7 @@ var Twitter = /** @class */ (function () {
             }
         };
     }
-    Twitter.prototype.request = function (url, method) {
+    Twitter.prototype.oauth = function (url, method) {
         var _this = this;
         var req;
         var signature;
@@ -99,15 +99,16 @@ var Twitter = /** @class */ (function () {
             req.end();
         });
     };
-    Twitter.prototype.oauth = function () {
+    Twitter.prototype.getFollowers = function (url, obj) {
+        return this.oauth(url, 'GET');
     };
     Twitter.prototype.get = function (url) {
-        return this.request(url, 'GET');
+        return this.oauth(url, 'GET');
     };
     return Twitter;
 }());
 var t = new Twitter(credential);
-t.getFollowers({ count: 1000 }).then(function (data) {
+t.get('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica').then(function (data) {
     if (data) {
         http_1.createServer(function (req, res) {
             res.end(data);

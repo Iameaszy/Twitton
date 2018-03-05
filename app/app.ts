@@ -66,7 +66,7 @@ class Twitter {
             }
         };
     }
-    
+
 
     request(url: string | { host: string, path: string, params?: { [index: string]: any } }, method: METHOD) {
         let req: ClientRequest;
@@ -108,13 +108,14 @@ class Twitter {
                 reject(err);
             });
 
-            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + credential.key + '",oauth_token="' + credential.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
+            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + this.auth.key + '",oauth_token="' + this.auth.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
             req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.end();
         });
     }
-    oauth() {
 
+    getFollowers(url, obj: { count?: number, user?: string }) {
+        return this.request(url, 'GET');
     }
     get(url: string) {
         return this.request(url, 'GET');
@@ -123,7 +124,7 @@ class Twitter {
 }
 
 const t = new Twitter(credential);
-t.getFollowers({ count: 1000 }).then(function (data) {
+t.get('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica').then(function (data) {
     if (data) {
         createServer((req, res) => {
             res.end(data);
