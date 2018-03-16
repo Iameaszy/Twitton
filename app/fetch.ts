@@ -1,5 +1,6 @@
 import { request } from "https";
-import { getSign } from "../util/signature"
+import { getSign } from "../util/signature";
+import { Auth } from "./oauth";
 import { parse } from "url";
 import { stringify } from "querystring";
 import { ClientRequest } from "http";
@@ -7,8 +8,8 @@ type METHOD = 'POST' | 'PUT' | 'GET' | 'DELETE';
 
 
 
-export abstract class Fetch {
-    fetch(url: string | { host: string, path: string, params?: { [index: string]: any } }, method: METHOD) {
+export abstract class Fetch extends Auth {
+    protected fetch(url: string | { host: string, path: string, params: any }, method: METHOD) {
         let req: ClientRequest;
         let signature: any;
         let parsedUrl: any;
@@ -47,7 +48,7 @@ export abstract class Fetch {
             req.on('error', (err) => {
                 reject({ err: err });
             });
-            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + this.auth.key + '",oauth_token="' + this.auth.token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
+            req.setHeader('Authorization', 'OAuth oauth_consumer_key="' + this.auth.oauth_consumer_key + '",oauth_token="' + this.auth.oauth_token + '",oauth_signature_method="HMAC-SHA1",oauth_timestamp="' + this.auth.oauth_timestamp + '",oauth_nonce="' + this.auth.oauth_nonce + '",oauth_version="1.0",oauth_signature="' + signature + '"');
             req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.end();
         });

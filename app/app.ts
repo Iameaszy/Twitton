@@ -1,8 +1,6 @@
-import { basename } from 'path';
-import { AUTHCREDENTIAL } from '../util/signature';
-import { Fetch } from './fetch';
-import { getRandom } from '../util/myUtil';
-import { Followers } from './followers';
+import { Fetch } from "./fetch";
+import { Followers, myObj } from "./followers";
+
 
 /* User Data */
 const credential = {
@@ -12,38 +10,40 @@ const credential = {
     tokenSecret: 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P'
 };
 
-
-interface obj {
-    key: string,
-    keySecret: string,
-    token: string,
-    tokenSecret: string
+interface Twitter {
+    followers(id: number | string, obj?: myObj): Promise<any>;
+    [index: string]: any;
 }
 class Twitter extends Fetch {
-    public auth: AUTHCREDENTIAL;
-    constructor(obj: obj) {
-        super()
-        this.auth = {
-            oauth_nonce: getRandom(6),
-            oauth_version: "1.0",
-            oauth_signature_method: "HMAC-SHA1",
-            oauth_timestamp: `${Math.floor(Date.now() / 1000)}`,
-            oauth_consumer_key: obj.key,
-            oauth_consumer_secret: obj.keySecret,
-            oauth_token: obj.token,
-            oauth_token_secret: obj.tokenSecret
+    constructor(obj: any) {
+        if (!obj) {
+            throw new Error('You must enter an Object containing your details');
         }
+        ['key', 'keySecret', 'token', 'tokenSecret'].forEach(val => {
+            if (!obj.hasOwnProperty(val) || !obj[val]) {
+                throw new Error(`${val} property is required`);
+            }
+        });
+        super(obj);
     }
 }
 
-const T = new Twitter(credential);
-(async () => {
-    let ids: any;
-    try {
-        ids = await T.fetch('https://api.twitter.com/1.1/followers/ids.json?screen_name=HypeleeAfrica', 'GET');
-    } catch (e) {
-        if (e) console.log('err:', e);
+
+function Mixin(baseCtor: any, deriveCtor: any) {
+    if (!Array.isArray(baseCtor) || typeof deriveCtor !== 'function') {
+        throw new Error('both base and derived must be a function or a class or an array');
     }
 
-    console.log(ids);
-})();
+    baseCtor.forEach((base: any) => {
+        Object.getOwnPropertyNames(base.prototype).forEach(name => {
+            if (name !== 'constructor') {
+                deriveCtor.prototype[name] = base.prototype[name];
+            }
+        });
+    });
+
+}
+
+Mixin([Followers], Twitter);
+const T = new Twitter(credential);
+T.followers('HypeleeAfrica');
