@@ -8,7 +8,7 @@ export interface myObj {
     count?: number;
     cursor?: number;
 }
-const cache = { follower: [], id: [], prev: 0, next: 0 };
+const cache: any = { followers: [], ids: [], prev: 0, next: 0, index: 0 };
 
 export abstract class Followers extends Fetch {
     followers(id: number | string, obj: myObj = { count: 5000, cursor: -1, stringify: false }) {
@@ -26,28 +26,39 @@ export abstract class Followers extends Fetch {
         if (obj) {
             options.count = obj.count ? obj.count : 5000;
             options.cursor = obj.cursor ? obj.cursor : -1;
-            // options.stringify_ids = obj.stringify ? obj.stringify : false;
+            options.stringify_ids = obj.stringify ? obj.stringify : false;
         }
         options = stringify(options);
         this.fetch(`https://api.twitter.com/1.1/followers/ids.json?${options}`, 'GET')
-            .then((val) => {
-                console.log(val);
-                createServer(function (req, res) {
-                    res.statusCode = 200;
-                    res.write(JSON.stringify(val));
-                    res.end();
-                }).listen(8000);
+            .then((val: any) => {
+                cache.ids.push(val.ids);
+                cache.next = val.next_cursor;
+                cache.prev = val.prev_cursor;
+                let index = cache.index, result: any;
+
+                while (index < cache.ids.length) {
+                    result = this.lookup(cache.ids.slice(index, index + 100));
+                    cache.followers.push(val);
+                    index += 100;
+                }
+
+                console.log(cache.followers);
+                index = cache.index = cache.ids.length = 0;
             })
             .catch((err) => {
                 throw new Error(err);
             });
     }
     lookup(ids: number) {
-        this.fetch(`https://api.twitter.com/1.1/users/lookup.json?${ids}`, 'POST').then((val) => {
+        let val: any;
+        (async () => {
+            try {
+                val = await this.fetch(`https://api.twitter.com/1.1/users/lookup.json?${ids}`, 'POST');
+            } catch (e) {
+                throw e;
+            }
+        })();
+        return val;
 
-        })
-            .catch((err) => {
-                throw new Error(err);
-            });
     }
 }

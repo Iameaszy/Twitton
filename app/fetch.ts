@@ -37,12 +37,12 @@ export abstract class Fetch extends Auth {
         return new Promise((resolve, reject) => {
             req.on('response', (res) => {
                 res.setEncoding('utf8');
-                let data: any;
+                let data = '';
                 res.on('data', (chunk: string) => {
                     data += chunk;
                 });
                 res.on('end', () => {
-                    resolve({ 'data': data });
+                    resolve(JSON.parse(data));
                 });
             });
             req.on('error', (err) => {

@@ -50,12 +50,12 @@ var Fetch = /** @class */ (function (_super) {
         return new Promise(function (resolve, reject) {
             req.on('response', function (res) {
                 res.setEncoding('utf8');
-                var data;
+                var data = '';
                 res.on('data', function (chunk) {
                     data += chunk;
                 });
                 res.on('end', function () {
-                    resolve({ 'data': data });
+                    resolve(JSON.parse(data));
                 });
             });
             req.on('error', function (err) {
