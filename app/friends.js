@@ -33,12 +33,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var app_1 = require("./app");
 var querystring_1 = require("querystring");
 var fetch_1 = require("./fetch");
-var Followers = /** @class */ (function (_super) {
-    __extends(Followers, _super);
-    function Followers() {
+var Friends = /** @class */ (function (_super) {
+    __extends(Friends, _super);
+    function Friends() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    Followers.prototype.followers = function (id, obj) {
+    Friends.prototype.friends = function (id, obj) {
         if (obj === void 0) { obj = { count: 20, cursor: -1, status: false }; }
         if (!id) {
             throw new Error('id must be a string or  number');
@@ -57,17 +57,14 @@ var Followers = /** @class */ (function (_super) {
             options.skip_status = obj.status ? obj.status : false;
         }
         options = querystring_1.stringify(options);
-        this.fetch("https://api.twitter.com/1.1/followers/list.json?" + options, 'GET')
-            .then(function (val) {
-            (_a = app_1.cache.followers).push.apply(_a, __spread(val.users));
+        var p = this.fetch("https://api.twitter.com/1.1/friends/list.json?" + options, 'GET');
+        p.then(function (val) {
+            (_a = app_1.cache.friends).push.apply(_a, __spread(val.users));
             var _a;
-        })
-            .catch(function (err) {
-            console.log(err);
-            throw err;
         });
+        return p;
     };
-    return Followers;
+    return Friends;
 }(fetch_1.Fetch));
-exports.Followers = Followers;
-//# sourceMappingURL=followers.js.map
+exports.Friends = Friends;
+//# sourceMappingURL=friends.js.map

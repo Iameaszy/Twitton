@@ -12,6 +12,8 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fetch_1 = require("./fetch");
 var followers_1 = require("./followers");
+var mixin_1 = require("./mixin");
+var followers_id_1 = require("./followers-id");
 /* User Data */
 var credential = {
     key: 'Frr2qLWTtMctBLin1t3NmtQa3',
@@ -19,6 +21,10 @@ var credential = {
     token: '1696416332-ujOmuatoR2tgxBKkP8dm9sb0EatkQM3pIBfn7Kg',
     tokenSecret: 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P'
 };
+exports.cache = { followers: { followers: [], prev: 0, next: 0 }, ids: { ids: [], prev: 0, next: 0 }, index: 0 };
+process.on('unhandledRejection', function (p, reason) {
+    console.log('unhandledRejection:', p, "reason:", reason);
+});
 var Twitter = /** @class */ (function (_super) {
     __extends(Twitter, _super);
     function Twitter(obj) {
@@ -36,19 +42,9 @@ var Twitter = /** @class */ (function (_super) {
     }
     return Twitter;
 }(fetch_1.Fetch));
-function Mixin(baseCtor, deriveCtor) {
-    if (!Array.isArray(baseCtor) || typeof deriveCtor !== 'function') {
-        throw new Error('both base and derived must be a function or a class or an array');
-    }
-    baseCtor.forEach(function (base) {
-        Object.getOwnPropertyNames(base.prototype).forEach(function (name) {
-            if (name !== 'constructor') {
-                deriveCtor.prototype[name] = base.prototype[name];
-            }
-        });
-    });
-}
-Mixin([followers_1.Followers], Twitter);
+mixin_1.mixin([followers_1.Followers, followers_id_1.FollowersId], Twitter);
 var T = new Twitter(credential);
-T.followers('HypeleeAfrica');
+T.followers('HypeleeAfrica')
+    .then((function (val) { return console.log(val); }))
+    .catch(function (e) { throw e; });
 //# sourceMappingURL=app.js.map

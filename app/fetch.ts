@@ -7,7 +7,6 @@ import { ClientRequest } from "http";
 type METHOD = 'POST' | 'PUT' | 'GET' | 'DELETE';
 
 
-
 export abstract class Fetch extends Auth {
     protected fetch(url: string | { host: string, path: string, params: any }, method: METHOD) {
         let req: ClientRequest;
@@ -26,7 +25,7 @@ export abstract class Fetch extends Auth {
             if (url['params']) {
                 search += '?' + stringify(url.params);
             }
-            console.log(url);
+
             req = request({
                 method: method,
                 host: url.host,

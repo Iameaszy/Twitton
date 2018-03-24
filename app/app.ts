@@ -1,5 +1,7 @@
 import { Fetch } from "./fetch";
-import { Followers, myObj } from "./followers";
+import { Followers } from "./followers";
+import { mixin } from "./mixin";
+import { FollowersId } from "./followers-id";
 
 
 /* User Data */
@@ -9,6 +11,24 @@ const credential = {
     token: '1696416332-ujOmuatoR2tgxBKkP8dm9sb0EatkQM3pIBfn7Kg',
     tokenSecret: 'llDeeqBD3ID4YuDcoYTEzbVIXzShKFTT5MTpc4ZGpwF6P'
 };
+
+export interface myObj {
+    stringify?: boolean;
+    count?: number;
+    cursor?: number;
+    status?: boolean;
+}
+
+interface cache {
+    followers: { followers: any[], prev: number, next: number };
+    ids: { ids: any[], prev: number, next: number };
+}
+
+export const cache: any = { followers: { followers: [], prev: 0, next: 0 }, ids: { ids: [], prev: 0, next: 0 }, index: 0 };
+
+process.on('unhandledRejection', (p, reason) => {
+    console.log('unhandledRejection:', p, "reason:", reason);
+});
 
 interface Twitter {
     followers(id: number | string, obj?: myObj): Promise<any>;
@@ -29,21 +49,8 @@ class Twitter extends Fetch {
 }
 
 
-function Mixin(baseCtor: any, deriveCtor: any) {
-    if (!Array.isArray(baseCtor) || typeof deriveCtor !== 'function') {
-        throw new Error('both base and derived must be a function or a class or an array');
-    }
-
-    baseCtor.forEach((base: any) => {
-        Object.getOwnPropertyNames(base.prototype).forEach(name => {
-            if (name !== 'constructor') {
-                deriveCtor.prototype[name] = base.prototype[name];
-            }
-        });
-    });
-
-}
-
-Mixin([Followers], Twitter);
+mixin([Followers, FollowersId], Twitter);
 const T = new Twitter(credential);
-T.followers('HypeleeAfrica');
+T.followers('HypeleeAfrica')
+    .then((val => console.log(val)))
+    .catch(e => { throw e; });

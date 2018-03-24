@@ -39,7 +39,6 @@ var Fetch = /** @class */ (function (_super) {
             if (url['params']) {
                 search += '?' + querystring_1.stringify(url.params);
             }
-            console.log(url);
             req = https_1.request({
                 method: method,
                 host: url.host,
